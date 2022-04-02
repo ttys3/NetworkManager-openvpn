@@ -103,6 +103,7 @@ typedef gboolean (*AskUserFunc) (const char *vpn_name,
 typedef void (*FinishFunc) (const char *vpn_name,
                             const char *prompt,
                             gboolean allow_interaction,
+                            gboolean need_mfa_code,
                             gboolean need_password,
                             const char *password,
                             gboolean need_certpass,
@@ -157,6 +158,7 @@ static void
 eui_finish (const char *vpn_name,
             const char *prompt,
             gboolean allow_interaction,
+            gboolean need_mfa_code,
             gboolean need_password,
             const char *existing_password,
             gboolean need_certpass,
@@ -182,6 +184,13 @@ eui_finish (const char *vpn_name,
 	                        _("Password"),
 	                        TRUE,
 	                        need_password && allow_interaction);
+
+    keyfile_add_entry_info (keyfile,
+                            NM_OPENVPN_KEY_MFA_TOKEN,
+                            "",
+                            _("MFA Code"),
+                            FALSE,
+                            need_mfa_code && allow_interaction);
 
 	keyfile_add_entry_info (keyfile,
 	                        NM_OPENVPN_KEY_CERTPASS,
@@ -297,6 +306,7 @@ static void
 std_finish (const char *vpn_name,
             const char *prompt,
             gboolean allow_interaction,
+            gboolean need_mfa_code,
             gboolean need_password,
             const char *password,
             gboolean need_certpass,
@@ -375,6 +385,7 @@ static char *
 get_passwords_required (GHashTable *data,
                         const char *const*hints,
                         gboolean *out_need_password,
+                        gboolean *out_need_mfa_code,
                         gboolean *out_need_certpass,
                         gboolean *out_need_proxypass)
 {
@@ -384,6 +395,7 @@ get_passwords_required (GHashTable *data,
 	const char *const*iter;
 
 	*out_need_password = FALSE;
+    *out_need_mfa_code = FALSE;
 	*out_need_certpass = FALSE;
 	*out_need_proxypass = FALSE;
 
@@ -394,6 +406,8 @@ get_passwords_required (GHashTable *data,
 				prompt = g_strdup (*iter + strlen (VPN_MSG_TAG));
 			else if (strcmp (*iter, NM_OPENVPN_KEY_PASSWORD) == 0)
 				*out_need_password = TRUE;
+            else if (strcmp (*iter, NM_OPENVPN_KEY_MFA_TOKEN) == 0)
+            *out_need_mfa_code = TRUE;
 			else if (strcmp (*iter, NM_OPENVPN_KEY_CERTPASS) == 0)
 				*out_need_certpass = TRUE;
 			else if (strcmp (*iter, NM_OPENVPN_KEY_HTTP_PROXY_PASSWORD) == 0)
@@ -445,6 +459,7 @@ main (int argc, char *argv[])
 	gs_unref_hashtable GHashTable *data = NULL;
 	gs_unref_hashtable GHashTable *secrets = NULL;
 	gboolean need_password = FALSE;
+    gboolean need_mf_code = FALSE;
 	gboolean need_certpass = FALSE;
 	gboolean need_proxypass = FALSE;
 	gs_strfreev char **hints = NULL;
@@ -512,7 +527,7 @@ main (int argc, char *argv[])
 	/* Determine which passwords are actually required, either from hints or
 	 * from looking at the VPN configuration.
 	 */
-	prompt = get_passwords_required (data, (const char *const*) hints, &need_password, &need_certpass, &need_proxypass);
+	prompt = get_passwords_required (data, (const char *const*) hints, &need_password, &need_mf_code, &need_certpass, &need_proxypass);
 	if (!prompt)
 		prompt = g_strdup_printf (_("You need to authenticate to access the Virtual Private Network “%s”."), vpn_name);
 
@@ -533,6 +548,8 @@ main (int argc, char *argv[])
 	                        &existing_proxypass);
 	if (need_password && !existing_password)
 		ask_user = TRUE;
+    else if (need_mf_code)
+        ask_user = TRUE;
 	else if (need_certpass && !existing_certpass)
 		ask_user = TRUE;
 	else if (need_proxypass && !existing_proxypass)
@@ -563,6 +580,7 @@ main (int argc, char *argv[])
 	finish_func (vpn_name,
 	             prompt,
 	             allow_interaction,
+                 need_mf_code,
 	             need_password,
 	             new_password ? new_password : existing_password,
 	             need_certpass,
