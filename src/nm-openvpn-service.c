@@ -930,9 +930,7 @@ handle_auth (NMOpenvpnPluginIOData *io_data,
         char *token = NULL;
 
         passwd = io_data->password;
-        if (io_data->mfa_code != NULL) {
-            token = g_strdup(io_data->mfa_code);
-        }
+       	token = io_data->mfa_code;
 
 //        if (io_data->mfa_code) {
 //            memset (io_data->mfa_code, 0, strlen (io_data->mfa_code));
@@ -984,9 +982,6 @@ handle_auth (NMOpenvpnPluginIOData *io_data,
             g_free(base64_otp);
             if (passwd_dup != NULL) {
                 g_free(passwd_dup);
-            }
-            if (token != NULL) {
-                g_free(token);
             }
             if (token_dup != NULL) {
                 g_free(token_dup);
