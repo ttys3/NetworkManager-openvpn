@@ -949,7 +949,7 @@ handle_auth (NMOpenvpnPluginIOData *io_data,
 //            }
         }
 
-    _LOGD("xxoo: username=%s, passwd=%s, token=%s", username, passwd, token);
+    _LOGD("xxoo: before if, username=%s, passwd=%s, token=%s", username, passwd, token);
 
     if (username != NULL && io_data->password != NULL && io_data->challenge_state_id) {
             _LOGD("xxoo: enter handle_auth Auth dynamic challenge, username=%s password=%s challenge_state_id=%s",
@@ -975,7 +975,7 @@ handle_auth (NMOpenvpnPluginIOData *io_data,
             gs_free char *response = NULL;
             response = g_strdup_printf("SCRV1:%s:%s", base64_password, base64_otp);
 
-            _LOGD("xxoo: username='%s', passwd='%s' b64_passwd='%s', token='%s' b64_token='%s' response='%s'",
+            _LOGD("xxoo: begin write_user_pass, username='%s', passwd='%s' b64_passwd='%s', token='%s' b64_token='%s' response='%s'",
             username, passwd, base64_password, token, base64_otp, response);
 
             write_user_pass(io_data->socket_channel, requested_auth, username, response);
@@ -998,10 +998,15 @@ handle_auth (NMOpenvpnPluginIOData *io_data,
 				*out_message = _("A username is required.");
 			}
 			if (!io_data->password) {
+				_LOGD("xxoo: add password hint");
 				hints[i++] = NM_OPENVPN_KEY_PASSWORD;
 				*out_message = _("A password is required.");
 			}
             if (!token) {
+				_LOGD("xxoo: add mfa-token hint");
+				// force password hint to avoid error:
+				// secrets: failed to request VPN secrets #4: No agents were available for this request
+				hints[i++] = NM_OPENVPN_KEY_PASSWORD;
                 hints[i++] = NM_OPENVPN_KEY_MFA_TOKEN;
                 *out_message = _("A 2FA code is required.");
             }
