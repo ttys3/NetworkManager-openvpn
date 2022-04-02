@@ -407,7 +407,7 @@ get_passwords_required (GHashTable *data,
 			else if (strcmp (*iter, NM_OPENVPN_KEY_PASSWORD) == 0)
 				*out_need_password = TRUE;
             else if (strcmp (*iter, NM_OPENVPN_KEY_MFA_TOKEN) == 0)
-            *out_need_mfa_code = TRUE;
+                *out_need_mfa_code = TRUE;
 			else if (strcmp (*iter, NM_OPENVPN_KEY_CERTPASS) == 0)
 				*out_need_certpass = TRUE;
 			else if (strcmp (*iter, NM_OPENVPN_KEY_HTTP_PROXY_PASSWORD) == 0)
