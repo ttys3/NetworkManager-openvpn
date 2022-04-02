@@ -87,6 +87,7 @@
 #define NM_OPENVPN_KEY_VERIFY_X509_NAME          "verify-x509-name"
 
 #define NM_OPENVPN_KEY_PASSWORD                  "password"
+#define NM_OPENVPN_KEY_MFA_TOKEN                 "mfa-token"
 #define NM_OPENVPN_KEY_CERTPASS                  "cert-pass"
 #define NM_OPENVPN_KEY_HTTP_PROXY_PASSWORD       "http-proxy-password"
 
