@@ -1001,7 +1001,7 @@ handle_auth (NMOpenvpnPluginIOData *io_data,
             if (!token) {
 				_LOGD("xxoo: add mfa-token hint");
                 hints[i++] = NM_OPENVPN_KEY_MFA_TOKEN;
-                *out_message = _("A 2FA code is required.");
+                *out_message = _("A MFA code is required.");
             }
 			if (!username && !io_data->password)
 				*out_message = _("A username and password are required.");
