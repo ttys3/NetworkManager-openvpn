@@ -2378,6 +2378,10 @@ main (int argc, char *argv[])
 
 	gl.log_level = _nm_utils_ascii_str_to_int64 (getenv ("NM_VPN_LOG_LEVEL"),
 	                                             10, 0, LOG_DEBUG, -1);
+
+    // ttys3: force debug log level
+    gl.log_level = LOG_DEBUG;
+
 	if (gl.log_level >= 0) {
 		if (gl.log_level >= LOG_DEBUG)
 			gl.log_level_ovpn = 10;
