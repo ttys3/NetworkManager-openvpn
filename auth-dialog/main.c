@@ -459,7 +459,7 @@ main (int argc, char *argv[])
 	gs_unref_hashtable GHashTable *data = NULL;
 	gs_unref_hashtable GHashTable *secrets = NULL;
 	gboolean need_password = FALSE;
-    gboolean need_mf_code = FALSE;
+    gboolean need_mfa_code = FALSE;
 	gboolean need_certpass = FALSE;
 	gboolean need_proxypass = FALSE;
 	gs_strfreev char **hints = NULL;
@@ -527,12 +527,13 @@ main (int argc, char *argv[])
 	/* Determine which passwords are actually required, either from hints or
 	 * from looking at the VPN configuration.
 	 */
-	prompt = get_passwords_required (data, (const char *const*) hints, &need_password, &need_mf_code, &need_certpass, &need_proxypass);
+	prompt = get_passwords_required (data, (const char *const*) hints, &need_password, &need_mfa_code, &need_certpass, &need_proxypass);
 	if (!prompt)
 		prompt = g_strdup_printf (_("You need to authenticate to access the Virtual Private Network “%s”."), vpn_name);
 
 	/* Exit early if we don't need any passwords */
-	if (!need_password && !need_certpass && !need_proxypass) {
+    // do not forget need_mfa_code, otherwise we will get error: "secrets: failed to request VPN secrets #4: No agents were available for this request"
+	if (!need_password && !need_mfa_code && !need_certpass && !need_proxypass) {
 		no_secrets_required_func ();
 		return EXIT_SUCCESS;
 	}
@@ -548,7 +549,7 @@ main (int argc, char *argv[])
 	                        &existing_proxypass);
 	if (need_password && !existing_password)
 		ask_user = TRUE;
-    else if (need_mf_code)
+    else if (need_mfa_code)
         ask_user = TRUE;
 	else if (need_certpass && !existing_certpass)
 		ask_user = TRUE;
@@ -578,14 +579,14 @@ main (int argc, char *argv[])
 	}
 
 	finish_func (vpn_name,
-	             prompt,
-	             allow_interaction,
-                 need_mf_code,
-	             need_password,
+                 prompt,
+                 allow_interaction,
+                 need_mfa_code,
+                 need_password,
 	             new_password ? new_password : existing_password,
-	             need_certpass,
+                 need_certpass,
 	             new_certpass ? new_certpass : existing_certpass,
-	             need_proxypass,
+                 need_proxypass,
 	             new_proxypass ? new_proxypass : existing_proxypass);
 	return EXIT_SUCCESS;
 }
