@@ -988,7 +988,7 @@ handle_auth (NMOpenvpnPluginIOData *io_data,
                 g_free(token_dup);
             }
         } else {
-			hints = g_new0 (const char *, 3);
+			hints = g_new0 (const char *, 4);
 			if (!username) {
 				hints[i++] = NM_OPENVPN_KEY_USERNAME;
 				*out_message = _("A username is required.");
@@ -996,14 +996,10 @@ handle_auth (NMOpenvpnPluginIOData *io_data,
 			if (!io_data->password) {
 				_LOGD("xxoo: add password hint");
 				hints[i++] = NM_OPENVPN_KEY_PASSWORD;
-				hints[i++] = NM_OPENVPN_KEY_MFA_TOKEN;
 				*out_message = _("A password is required.");
 			}
             if (!token) {
 				_LOGD("xxoo: add mfa-token hint");
-				// force password hint to avoid error:
-				// secrets: failed to request VPN secrets #4: No agents were available for this request
-				hints[i++] = NM_OPENVPN_KEY_PASSWORD;
                 hints[i++] = NM_OPENVPN_KEY_MFA_TOKEN;
                 *out_message = _("A 2FA code is required.");
             }
@@ -1149,6 +1145,12 @@ handle_management_socket (NMOpenvpnPlugin *plugin,
 				if (priv->io_data->password)
 					memset (priv->io_data->password, 0, strlen (priv->io_data->password));
 				g_clear_pointer (&priv->io_data->password, g_free);
+
+                /* after auth failed, clear existing mfa code in interactive mode */
+                if (priv->io_data->mfa_code)
+                    memset (priv->io_data->mfa_code, 0, strlen (priv->io_data->mfa_code));
+                g_clear_pointer (&priv->io_data->mfa_code, g_free);
+
 				fail = FALSE;
 			}
 		} else if (nm_streq (auth, "Private Key"))
@@ -1304,6 +1306,7 @@ update_io_data_from_vpn_setting (NMOpenvpnPluginIOData *io_data,
 		if (io_data->mfa_code) {
 			memset (io_data->mfa_code, 0, strlen (io_data->mfa_code));
 			g_free (io_data->mfa_code);
+            _LOGD ("update_io_data_from_vpn_setting: clear exists io_data->mfa_code");
     	}
     	io_data->mfa_code = g_strdup (nm_setting_vpn_get_secret (s_vpn, NM_OPENVPN_KEY_MFA_TOKEN));
         _LOGD ("update_io_data_from_vpn_setting: get mfa code from secret, io_data->mfa_code=%s", io_data->mfa_code);
