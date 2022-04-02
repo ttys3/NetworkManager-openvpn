@@ -1306,8 +1306,8 @@ update_io_data_from_vpn_setting (NMOpenvpnPluginIOData *io_data,
 			g_free (io_data->mfa_code);
     	}
     	io_data->mfa_code = g_strdup (nm_setting_vpn_get_secret (s_vpn, NM_OPENVPN_KEY_MFA_TOKEN));
-
-	//    nm_setting_vpn_remove_secret(s_vpn, NM_OPENVPN_KEY_MFA_TOKEN);
+        _LOGD ("update_io_data_from_vpn_setting: get mfa code from secret, io_data->mfa_code=%s", io_data->mfa_code);
+	    nm_setting_vpn_remove_secret(s_vpn, NM_OPENVPN_KEY_MFA_TOKEN);
 	}
 
 	if (io_data->priv_key_pass) {
@@ -2098,8 +2098,14 @@ nm_openvpn_start_openvpn_binary (NMOpenvpnPlugin *plugin,
 	    || nm_setting_vpn_get_data_item (s_vpn, NM_OPENVPN_KEY_HTTP_PROXY_USERNAME)) {
 
 		priv->io_data = g_malloc0 (sizeof (NMOpenvpnPluginIOData));
+
+        // tricks: clear mfa token on first run (we are starting openvpn, so it is absolute first time)
+        _LOGD ("xxoo: clear mfa token on first run");
+        nm_setting_vpn_remove_secret(s_vpn, NM_OPENVPN_KEY_MFA_TOKEN);
+
 		update_io_data_from_vpn_setting (priv->io_data, s_vpn,
 		                                 nm_setting_vpn_get_user_name (s_vpn));
+
 		nm_openvpn_schedule_connect_timer (plugin);
 	}
 
