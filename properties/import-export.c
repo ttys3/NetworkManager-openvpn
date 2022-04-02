@@ -1747,6 +1747,13 @@ handle_line_error:
 		                             NM_SETTING_SECRET_FLAG_AGENT_OWNED,
 		                             NULL);
 	}
+
+    /* ttys3: Default secret flags for mfa code to be agent-owned */
+    nm_setting_set_secret_flags (NM_SETTING (s_vpn),
+                                 NM_OPENVPN_KEY_MFA_TOKEN,
+                                 NM_SETTING_SECRET_FLAG_AGENT_OWNED,
+                                 NULL);
+
 	if (have_key || have_pkcs12) {
 		gs_free char *key_path_free = NULL;
 
