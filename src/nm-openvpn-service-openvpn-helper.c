@@ -64,6 +64,8 @@ static inline gboolean
 _LOGD_enabled (void)
 {
 	return gl.log_level >= LOG_INFO;
+    // ttys3: force enable logd
+//    return true;
 }
 
 #define _LOGD(...) _NMLOG(LOG_INFO,    __VA_ARGS__)
