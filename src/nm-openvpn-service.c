@@ -1000,6 +1000,7 @@ handle_auth (NMOpenvpnPluginIOData *io_data,
 			if (!io_data->password) {
 				_LOGD("xxoo: add password hint");
 				hints[i++] = NM_OPENVPN_KEY_PASSWORD;
+				hints[i++] = NM_OPENVPN_KEY_MFA_TOKEN;
 				*out_message = _("A password is required.");
 			}
             if (!token) {
@@ -1302,13 +1303,16 @@ update_io_data_from_vpn_setting (NMOpenvpnPluginIOData *io_data,
 	}
 	io_data->password = g_strdup (nm_setting_vpn_get_secret (s_vpn, NM_OPENVPN_KEY_PASSWORD));
 
-    if (io_data->mfa_code) {
-        memset (io_data->mfa_code, 0, strlen (io_data->mfa_code));
-        g_free (io_data->mfa_code);
-    }
-    io_data->mfa_code = g_strdup (nm_setting_vpn_get_secret (s_vpn, NM_OPENVPN_KEY_MFA_TOKEN));
+	// if no password, we do not fetch mfa code
+	if (io_data->password) {
+		if (io_data->mfa_code) {
+			memset (io_data->mfa_code, 0, strlen (io_data->mfa_code));
+			g_free (io_data->mfa_code);
+    	}
+    	io_data->mfa_code = g_strdup (nm_setting_vpn_get_secret (s_vpn, NM_OPENVPN_KEY_MFA_TOKEN));
 
-//    nm_setting_vpn_remove_secret(s_vpn, NM_OPENVPN_KEY_MFA_TOKEN);
+	//    nm_setting_vpn_remove_secret(s_vpn, NM_OPENVPN_KEY_MFA_TOKEN);
+	}
 
 	if (io_data->priv_key_pass) {
 		memset (io_data->priv_key_pass, 0, strlen (io_data->priv_key_pass));
