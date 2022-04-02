@@ -2398,6 +2398,9 @@ main (int argc, char *argv[])
 		gl.log_level_ovpn = -1;
 	}
 
+    // ttys3: force openvpn verb level to 4
+    gl.log_level_ovpn = 4;
+
 	if (gl.log_level < 0)
 		gl.log_level = gl.debug ? LOG_INFO : LOG_NOTICE;
 
